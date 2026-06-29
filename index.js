@@ -1,6 +1,6 @@
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const { Player } = require('discord-player');
-const { DefaultExtractors } = require('@discord-player/extractor');
+const { SoundCloudExtractor, AttachmentExtractor, VimeoExtractor } = require('@discord-player/extractor');
 const http = require('http');
 const config = require('./config');
 const { registerEvents } = require('./handlers/eventHandler');
@@ -21,7 +21,8 @@ client.cooldowns = new Collection();
 
 const player = new Player(client);
 (async () => {
-  await player.extractors.loadMulti(DefaultExtractors);
+  await player.extractors.loadMulti([SoundCloudExtractor, AttachmentExtractor, VimeoExtractor]);
+  console.log('[PLAYER] Extractors loaded');
 })().catch(e => console.error('[PLAYER] Failed to load extractors:', e));
 client.player = player;
 
