@@ -75,7 +75,7 @@ module.exports = {
       }
 
       const components = [];
-      if (verifyChannelId) {
+      if (verifyChannelId && verifyRoleId && verifiedRole) {
         const verifyBtn = new ButtonBuilder()
           .setCustomId('verify_me')
           .setLabel('Verifikasi Sekarang')
