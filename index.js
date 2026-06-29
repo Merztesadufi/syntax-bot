@@ -1,4 +1,6 @@
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Player } = require('discord-player');
+const { DefaultExtractors } = require('@discord-player/extractor');
 const http = require('http');
 const config = require('./config');
 const { registerEvents } = require('./handlers/eventHandler');
@@ -10,11 +12,18 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildVoiceStates,
   ],
 });
 
 client.commands = new Collection();
 client.cooldowns = new Collection();
+
+const player = new Player(client);
+(async () => {
+  await player.extractors.loadMulti(DefaultExtractors);
+})().catch(e => console.error('[PLAYER] Failed to load extractors:', e));
+client.player = player;
 
 registerEvents(client);
 
