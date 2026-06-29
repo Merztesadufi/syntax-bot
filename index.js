@@ -27,7 +27,15 @@ client.player = player;
 
 registerEvents(client);
 
-client.login(config.token);
+client.login(config.token).catch(e => console.error('[LOGIN] Failed:', e));
+
+process.on('unhandledRejection', (err) => {
+  console.error('[UNHANDLED]', err);
+});
+
+client.on('error', (err) => {
+  console.error('[CLIENT ERROR]', err);
+});
 
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
