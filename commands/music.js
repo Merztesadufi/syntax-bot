@@ -40,7 +40,7 @@ module.exports = {
     const sub = interaction.options.getSubcommand();
     const player = useMainPlayer();
     const queue = useQueue(interaction.guild.id);
-    const timeline = useTimeline(interaction.guild.id);
+    const timeline = useTimeline({ node: interaction.guild.id });
     const channel = interaction.member.voice.channel;
 
     if (sub === 'play') {
