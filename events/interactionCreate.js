@@ -123,52 +123,72 @@ async function handleGoRules(interaction) {
 async function handleRulesDone(interaction) {
   await db.set(`progress_${interaction.guild.id}_${interaction.user.id}`, { formDone: true, rulesDone: true });
 
-  const rolesChannelId = await db.get(`rolesChannel_${interaction.guild.id}`);
-
-  if (!rolesChannelId) {
-    return interaction.reply({ content: '❌ Channel role selection belum diatur oleh admin.', ephemeral: true });
-  }
-
-  const rolesChannel = interaction.guild.channels.cache.get(rolesChannelId);
-  if (!rolesChannel) {
-    return interaction.reply({ content: '❌ Channel role selection tidak ditemukan.', ephemeral: true });
-  }
-
   const verifyRoleId = await db.get(`verifyRole_${interaction.guild.id}`);
   const memsynRoleId = await db.get(`memsynRole_${interaction.guild.id}`);
+  const rolesChannelId = await db.get(`rolesChannel_${interaction.guild.id}`);
 
-  const btnRow = new ActionRowBuilder();
+  if (rolesChannelId) {
+    const rolesChannel = interaction.guild.channels.cache.get(rolesChannelId);
+    if (rolesChannel) {
+      const btnRow = new ActionRowBuilder();
+      if (verifyRoleId) {
+        const role = interaction.guild.roles.cache.get(verifyRoleId);
+        if (role) {
+          btnRow.addComponents(
+            new ButtonBuilder().setCustomId(`toggle_role_${verifyRoleId}`).setLabel(role.name).setStyle(ButtonStyle.Primary).setEmoji('✅'),
+          );
+        }
+      }
+      if (memsynRoleId) {
+        const role = interaction.guild.roles.cache.get(memsynRoleId);
+        if (role) {
+          btnRow.addComponents(
+            new ButtonBuilder().setCustomId(`toggle_role_${memsynRoleId}`).setLabel(role.name).setStyle(ButtonStyle.Success).setEmoji('⭐'),
+          );
+        }
+      }
+
+      await rolesChannel.send({
+        content: `${interaction.user}`,
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0x5865F2)
+            .setTitle('🎭 Pilih Role Kamu')
+            .setDescription(`Halo ${interaction.user}, klik tombol role di bawah untuk mendapatkannya!`)
+            .setTimestamp(),
+        ],
+        components: btnRow.components.length ? [btnRow] : [],
+      });
+
+      return interaction.reply({
+        content: `✅ **Langkah selanjutnya:**\n1️⃣ Klik atau buka channel ${rolesChannel} (biru di atas)\n2️⃣ Klik tombol role yang kamu inginkan\n3️⃣ Role langsung diberikan!\n\n*Kamu harus pindah ke channel tersebut secara manual.*`,
+        ephemeral: true,
+      });
+    }
+  }
+
+  const rolesGiven = [];
   if (verifyRoleId) {
     const role = interaction.guild.roles.cache.get(verifyRoleId);
     if (role) {
-      btnRow.addComponents(
-        new ButtonBuilder().setCustomId(`toggle_role_${verifyRoleId}`).setLabel(role.name).setStyle(ButtonStyle.Primary).setEmoji('✅'),
-      );
+      try {
+        await interaction.member.roles.add(role);
+        rolesGiven.push(role.name);
+      } catch {}
     }
   }
   if (memsynRoleId) {
     const role = interaction.guild.roles.cache.get(memsynRoleId);
     if (role) {
-      btnRow.addComponents(
-        new ButtonBuilder().setCustomId(`toggle_role_${memsynRoleId}`).setLabel(role.name).setStyle(ButtonStyle.Success).setEmoji('⭐'),
-      );
+      try {
+        await interaction.member.roles.add(role);
+        rolesGiven.push(role.name);
+      } catch {}
     }
   }
 
-  await rolesChannel.send({
-    content: `${interaction.user}`,
-    embeds: [
-      new EmbedBuilder()
-        .setColor(0x5865F2)
-        .setTitle('🎭 Pilih Role Kamu')
-        .setDescription(`Halo ${interaction.user}, klik tombol role di bawah untuk mendapatkannya!`)
-        .setTimestamp(),
-    ],
-    components: btnRow.components.length ? [btnRow] : [],
-  });
-
   await interaction.reply({
-    content: `✅ **Langkah selanjutnya:**\n1️⃣ Klik atau buka channel ${rolesChannel} (biru di atas)\n2️⃣ Klik tombol role yang kamu inginkan\n3️⃣ Role langsung diberikan!\n\n*Kamu harus pindah ke channel tersebut secara manual.*`,
+    content: `✅ **Onboarding selesai!** Role **${rolesGiven.join('**, **') || '—'}** sudah diberikan.\nSelamat menikmati server! 🎉`,
     ephemeral: true,
   });
 }

@@ -44,13 +44,13 @@ module.exports = {
         const verifyChannel = member.guild.channels.cache.get(verifyChannelId);
         if (verifyChannel) {
           desc += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-          desc += `**📋 ALUR ONBOARDING:**\n\n`;
+          desc += `**📋 ALUR ONBOARDING (4 Langkah):**\n\n`;
           desc += `**1️⃣** Klik tombol **✅ Mulai Verifikasi** di bawah\n`;
           desc += `**2️⃣** Isi form data diri (Nama, Jurusan, dll)\n`;
-          if (rulesChannelId) desc += `**3️⃣** Baca peraturan di <#${rulesChannelId}>\n`;
-          if (rolesChannelId) desc += `**4️⃣** Pilih role kamu di <#${rolesChannelId}>\n`;
-          desc += `**5️⃣** Dapatkan role **${verifiedRole.name}**${memsynRoleId ? ` + **<@&${memsynRoleId}>**` : ''}\n`;
-          desc += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
+          desc += `**3️⃣${rulesChannelId ? `` : ` (wajib)`}** Baca peraturan${rulesChannelId ? ` di <#${rulesChannelId}>` : ``}\n`;
+          desc += `**4️⃣${rolesChannelId ? ` di <#${rolesChannelId}>` : ``}** Ambil role kamu\n`;
+          desc += `\n📌 **Role final:** ${verifiedRole.name}${memsynRoleId ? ` + <@&${memsynRoleId}>` : ''}\n`;
+          desc += `━━━━━━━━━━━━━━━━━━━━━━\n`;
           desc += `*Selesaikan semua langkah untuk mendapatkan akses penuh ke server!*`;
         }
       } else {
