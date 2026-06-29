@@ -134,13 +134,38 @@ async function handleRulesDone(interaction) {
     return interaction.reply({ content: '❌ Channel role selection tidak ditemukan.', ephemeral: true });
   }
 
-  await rolesChannel.send({ content: `${interaction.user}`, embeds: [
-    new EmbedBuilder()
-      .setColor(0x5865F2)
-      .setTitle('🎭 Pilih Role Kamu')
-      .setDescription(`Halo ${interaction.user}, klik tombol role di bawah untuk mendapatkannya!`)
-      .setTimestamp(),
-  ]});
+  const verifyRoleId = await db.get(`verifyRole_${interaction.guild.id}`);
+  const memsynRoleId = await db.get(`memsynRole_${interaction.guild.id}`);
+
+  const btnRow = new ActionRowBuilder();
+  if (verifyRoleId) {
+    const role = interaction.guild.roles.cache.get(verifyRoleId);
+    if (role) {
+      btnRow.addComponents(
+        new ButtonBuilder().setCustomId(`toggle_role_${verifyRoleId}`).setLabel(role.name).setStyle(ButtonStyle.Primary).setEmoji('✅'),
+      );
+    }
+  }
+  if (memsynRoleId) {
+    const role = interaction.guild.roles.cache.get(memsynRoleId);
+    if (role) {
+      btnRow.addComponents(
+        new ButtonBuilder().setCustomId(`toggle_role_${memsynRoleId}`).setLabel(role.name).setStyle(ButtonStyle.Success).setEmoji('⭐'),
+      );
+    }
+  }
+
+  await rolesChannel.send({
+    content: `${interaction.user}`,
+    embeds: [
+      new EmbedBuilder()
+        .setColor(0x5865F2)
+        .setTitle('🎭 Pilih Role Kamu')
+        .setDescription(`Halo ${interaction.user}, klik tombol role di bawah untuk mendapatkannya!`)
+        .setTimestamp(),
+    ],
+    components: btnRow.components.length ? [btnRow] : [],
+  });
 
   await interaction.reply({
     content: `✅ **Langkah selanjutnya:**\n1️⃣ Klik atau buka channel ${rolesChannel} (biru di atas)\n2️⃣ Klik tombol role yang kamu inginkan\n3️⃣ Role langsung diberikan!\n\n*Kamu harus pindah ke channel tersebut secara manual.*`,

@@ -2,6 +2,7 @@ const { ActivityType } = require('discord.js');
 const { fetchNews } = require('../utils/newsFetcher');
 const { fetchJobs } = require('../utils/jobFetcher');
 const { registerCommands } = require('../handlers/commandHandler');
+const db = require('../utils/database');
 const config = require('../config');
 
 module.exports = {
@@ -22,7 +23,11 @@ module.exports = {
     const postNews = async () => {
       if (!newsChannel) return;
       const articles = await fetchNews();
+      const sentKey = `sentNewsUrls_${newsChannel.id}`;
+      let sent = await db.get(sentKey) || [];
+      let newCount = 0;
       for (const article of articles.slice(0, 2)) {
+        if (sent.includes(article.url)) continue;
         const embed = {
           color: 0x00AE86,
           title: `📰 ${article.title}`,
@@ -34,14 +39,23 @@ module.exports = {
           ],
           timestamp: new Date(),
         };
-        newsChannel.send({ embeds: [embed] }).catch(() => {});
+        await newsChannel.send({ embeds: [embed] }).catch(() => {});
+        sent.push(article.url);
+        newCount++;
+      }
+      if (newCount > 0) {
+        await db.set(sentKey, sent.slice(-200));
       }
     };
 
     const postJobs = async () => {
       if (!jobChannel) return;
       const jobs = await fetchJobs();
+      const sentKey = `sentJobUrls_${jobChannel.id}`;
+      let sent = await db.get(sentKey) || [];
+      let newCount = 0;
       for (const job of jobs.slice(0, 2)) {
+        if (sent.includes(job.url)) continue;
         const embed = {
           color: 0x3498DB,
           title: `💼 ${job.title}`,
@@ -54,7 +68,12 @@ module.exports = {
           ],
           timestamp: new Date(),
         };
-        jobChannel.send({ embeds: [embed] }).catch(() => {});
+        await jobChannel.send({ embeds: [embed] }).catch(() => {});
+        sent.push(job.url);
+        newCount++;
+      }
+      if (newCount > 0) {
+        await db.set(sentKey, sent.slice(-200));
       }
     };
 
