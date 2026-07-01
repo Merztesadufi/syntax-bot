@@ -35,7 +35,6 @@ module.exports = {
           description: article.description,
           fields: [
             { name: 'Sumber', value: article.source, inline: true },
-            { name: 'Tag', value: article.tags, inline: true },
           ],
           timestamp: new Date(),
         };

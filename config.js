@@ -19,7 +19,7 @@ module.exports = {
   },
 
   news: {
-    intervalMinutes: 120,
+    intervalMinutes: 180,
     sources: [
       'https://dev.to/api/articles?tag=programming&per_page=3',
       'https://hn.algolia.com/api/v1/search?query=programming&tags=story&hitsPerPage=3',

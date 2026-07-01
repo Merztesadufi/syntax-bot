@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { fetchNews } = require('../utils/newsFetcher');
+const { fetchNews, markAsSent } = require('../utils/newsFetcher');
 const { fetchJobs } = require('../utils/jobFetcher');
+const db = require('../utils/database');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -8,7 +9,21 @@ module.exports = {
     .setDescription('Dapatkan informasi terkini')
     .addSubcommand(sub =>
       sub.setName('news')
-        .setDescription('Berita programming terkini'))
+        .setDescription('Berita terkini dari berbagai sumber global')
+        .addStringOption(opt =>
+          opt.setName('sumber')
+            .setDescription('Pilih sumber berita (default: semua)')
+            .setRequired(false)
+            .addChoices(
+              { name: 'Semua sumber', value: 'all' },
+              { name: 'CNN', value: 'cnn' },
+              { name: 'CNBC', value: 'cnbc' },
+              { name: 'BBC News', value: 'bbc' },
+              { name: 'The Guardian', value: 'guardian' },
+              { name: 'NPR', value: 'npr' },
+              { name: 'New York Times', value: 'nyt' },
+              { name: 'Programming (Dev.to, HN, Google News)', value: 'programming' },
+            )))
     .addSubcommand(sub =>
       sub.setName('jobs')
         .setDescription('Lowongan kerja IT terbaru')),
@@ -18,17 +33,26 @@ module.exports = {
 
     if (sub === 'news') {
       await interaction.deferReply();
-      const articles = await fetchNews();
-      if (articles.length === 0) {
-        return interaction.editReply('❌ Gagal mengambil berita. Coba lagi nanti.');
+      const source = interaction.options.getString('sumber') || 'all';
+      const sourceLabel = source === 'all' ? 'Semua Sumber' :
+        source === 'programming' ? 'Programming' :
+        source.toUpperCase();
+
+      const sentUrls = (await db.get('sent_news_urls')) || [];
+      const articles = await fetchNews(source);
+      const newArticles = articles.filter(a => !sentUrls.includes(a.url));
+
+      if (newArticles.length === 0) {
+        return interaction.editReply('📭 Tidak ada berita baru. Coba pilih sumber lain atau tunggu beberapa saat.');
       }
 
       const embed = new EmbedBuilder()
         .setColor(0x00AE86)
-        .setTitle('📰 Berita Programming Terbaru')
+        .setTitle(`📰 ${sourceLabel} — Berita Terbaru`)
+        .setDescription(`${newArticles.length} artikel baru`)
         .setTimestamp();
 
-      for (const article of articles.slice(0, 5)) {
+      for (const article of newArticles.slice(0, 5)) {
         embed.addFields({
           name: article.title,
           value: `[Baca selengkapnya](${article.url}) — *${article.source}*`,
@@ -37,6 +61,7 @@ module.exports = {
       }
 
       await interaction.editReply({ embeds: [embed] });
+      await markAsSent(newArticles);
     }
 
     if (sub === 'jobs') {
