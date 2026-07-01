@@ -36,7 +36,7 @@ module.exports = {
   },
 
   github: {
-    intervalMinutes: 360,
+    intervalMinutes: 180,
   },
 
   codingBasics: {

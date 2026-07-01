@@ -1,7 +1,7 @@
 const { ActivityType, EmbedBuilder } = require('discord.js');
 const { fetchNews } = require('../utils/newsFetcher');
 const { fetchJobs } = require('../utils/jobFetcher');
-const { fetchTrendingRepos } = require('../utils/githubFetcher');
+const { fetchRandomRepos } = require('../utils/githubFetcher');
 const { registerCommands } = require('../handlers/commandHandler');
 const db = require('../utils/database');
 const config = require('../config');
@@ -83,7 +83,7 @@ module.exports = {
 
     const postGithub = async () => {
       if (!githubChannel) return;
-      const repos = await fetchTrendingRepos(3);
+      const repos = await fetchRandomRepos(3);
       if (repos.length === 0) return;
 
       const sentKey = `sentGithubUrls_${githubChannel.id}`;
