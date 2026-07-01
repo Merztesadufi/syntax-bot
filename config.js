@@ -6,6 +6,7 @@ module.exports = {
   newsChannelId: process.env.NEWS_CHANNEL_ID,
   jobChannelId: process.env.JOB_CHANNEL_ID,
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID,
+  githubChannelId: process.env.GITHUB_CHANNEL_ID || '1520844318443700267',
   ticketCategoryId: process.env.TICKET_CATEGORY_ID,
   autoRoleId: process.env.AUTO_ROLE_ID,
 
@@ -32,6 +33,10 @@ module.exports = {
       'https://remotive.com/api/remote-jobs?category=software-dev&limit=5',
       'https://jobs.github.com/positions.json?description=developer&limit=5',
     ],
+  },
+
+  github: {
+    intervalMinutes: 360,
   },
 
   codingBasics: {

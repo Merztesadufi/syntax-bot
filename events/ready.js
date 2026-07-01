@@ -1,6 +1,7 @@
-const { ActivityType } = require('discord.js');
+const { ActivityType, EmbedBuilder } = require('discord.js');
 const { fetchNews } = require('../utils/newsFetcher');
 const { fetchJobs } = require('../utils/jobFetcher');
+const { fetchTrendingRepos } = require('../utils/githubFetcher');
 const { registerCommands } = require('../handlers/commandHandler');
 const db = require('../utils/database');
 const config = require('../config');
@@ -19,6 +20,7 @@ module.exports = {
 
     const newsChannel = client.channels.cache.get(config.newsChannelId);
     const jobChannel = client.channels.cache.get(config.jobChannelId);
+    const githubChannel = client.channels.cache.get(config.githubChannelId);
 
     const postNews = async () => {
       if (!newsChannel) return;
@@ -78,6 +80,49 @@ module.exports = {
 
     postNews();
     postJobs();
+
+    const postGithub = async () => {
+      if (!githubChannel) return;
+      const repos = await fetchTrendingRepos(3);
+      if (repos.length === 0) return;
+
+      const sentKey = `sentGithubUrls_${githubChannel.id}`;
+      let sent = await db.get(sentKey) || [];
+      let newCount = 0;
+
+      for (const repo of repos) {
+        if (sent.includes(repo.url)) continue;
+
+        const embed = new EmbedBuilder()
+          .setColor(0x2DBA4E)
+          .setTitle(`⭐ ${repo.name}`)
+          .setURL(repo.url)
+          .setDescription(repo.description)
+          .setThumbnail(repo.avatar)
+          .addFields(
+            { name: 'Stars', value: repo.stars, inline: true },
+            { name: 'Forks', value: repo.forks, inline: true },
+            { name: 'Language', value: repo.language, inline: true },
+          )
+          .setTimestamp();
+
+        if (repo.topics.length > 0) {
+          embed.setFooter({ text: `Topics: ${repo.topics.slice(0, 5).join(', ')}` });
+        }
+
+        await githubChannel.send({ embeds: [embed] }).catch(() => {});
+        sent.push(repo.url);
+        newCount++;
+      }
+
+      if (newCount > 0) {
+        await db.set(sentKey, sent.slice(-200));
+        console.log(`[GITHUB] Posted ${newCount} repos`);
+      }
+    };
+
+    postGithub();
+    setInterval(postGithub, config.github.intervalMinutes * 60 * 1000);
 
     setInterval(postNews, config.news.intervalMinutes * 60 * 1000);
     setInterval(postJobs, config.jobs.intervalMinutes * 60 * 1000);
